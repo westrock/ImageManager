@@ -343,38 +343,14 @@ namespace ConsoleApp
             int allFilesCount = ImageFiles.SelectMany(i => i.Value).Count();
             int singletonFilesCount = singletonFiles.Count;
 
-            if (!System.IO.Directory.Exists(repository))
-            {
-                System.IO.Directory.CreateDirectory(repository);
-            }
-
             foreach (ImageFileInfo imageFile in singletonFiles)
             {
-                string yearDirectory = Path.Combine(repository, $"{imageFile.LikelyDateTime.Year}");
-
-                if (!System.IO.Directory.Exists(yearDirectory))
-                {
-                    System.IO.Directory.CreateDirectory(yearDirectory);
-                }
-
-                string monthDirectory = Path.Combine(yearDirectory, $"{imageFile.LikelyDateTime.Month:D2}");
-
-                if (!System.IO.Directory.Exists(monthDirectory))
-                {
-                    System.IO.Directory.CreateDirectory(monthDirectory);
-                }
-
-                string dayDirectory = Path.Combine(monthDirectory, $"{imageFile.LikelyDateTime.Day:D2}");
-
-                if (!System.IO.Directory.Exists(dayDirectory))
-                {
-                    System.IO.Directory.CreateDirectory(dayDirectory);
-                }
+                string dayDirectory = CreateDayDirectory(repository, imageFile.LikelyDateTime);
 
                 try
                 {
-                    File.Copy(imageFile.FileFullPath, Path.Combine(dayDirectory, imageFile.FileName));
                     imageFile.NewFullPath = Path.Combine(dayDirectory, imageFile.FileName);
+                    File.Copy(imageFile.FileFullPath, imageFile.NewFullPath);
                     imageFile.IsMoved = true;
                     imageFile.AsSQLImageFileInfo(_DBOConn).MarkMoved();
                 }
@@ -384,14 +360,185 @@ namespace ConsoleApp
                 }
             }
 
-            GenerateReport($@"E:SingletonPictureReport_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", singletonFiles, ",");
-
-            foreach (string fileName in singletonFiles.Select(u => u.FileName))
+            foreach (string fileName in singletonFiles.Select(u => u.FileNameWithoutExtension))
             {
                 ImageFiles.Remove(fileName);
             }
         }
 
+
+        public void ProcessMultipleImages(string repository)
+        {
+            List<ImageFileInfo> movedFiles = new List<ImageFileInfo>();
+            int uniqueNamesCount = ImageFiles.Count;
+            int allFilesCount = ImageFiles.SelectMany(i => i.Value).Count();
+
+            foreach (KeyValuePair<string, List<ImageFileInfo>> imageFileList in ImageFiles.Where(i => i.Value.Count > 1))
+            {
+                foreach (DateTime likelyDate in imageFileList.Value.Select(i => i.LikelyDateTime).Distinct())
+                {
+                    ImageFileInfo masterImage = null;
+
+                    foreach (ImageFileInfo imageFile in imageFileList.Value.Where(i => i.LikelyDateTime == likelyDate)
+                                                                           .OrderBy(i => i.LikelyDateTime)
+                                                                           .ThenBy(i => i.ImageOriginalDateTime)
+                                                                           .ThenBy(i => PathHint(i.FileFullPath))
+                                                                           .ThenBy(i => i.FileName))
+                    {
+                        string dayDirectory = CreateDayDirectory(repository, imageFile.LikelyDateTime);
+                        string pathHint = PathHint(imageFile.FileFullPath);
+
+                        if (masterImage == null)
+                        {
+                            pathHint = "Master";
+                            masterImage = imageFile;
+                        }
+                        string targetFileName = "";
+                        bool haveTargetName = false;
+                        for (int attempt = 0; attempt < 99; attempt++)
+                        {
+                            targetFileName = GetTargetFileName(dayDirectory, imageFile.FileName, pathHint, attempt);
+                            if (!File.Exists(targetFileName))
+                            {
+                                haveTargetName = true;
+                                break;
+                            }
+                        }
+
+                        if (haveTargetName)
+                        {
+                            try
+                            {
+                                imageFile.NewFullPath = targetFileName;
+                                File.Copy(imageFile.FileFullPath, imageFile.NewFullPath);
+                                imageFile.IsMoved = true;
+                                imageFile.AsSQLImageFileInfo(_DBOConn).MarkMoved();
+                                movedFiles.Add(imageFile);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (string fileName in movedFiles.Select(u => u.FileNameWithoutExtension))
+            {
+                ImageFiles.Remove(fileName);
+            }
+        }
+
+        public void GenerateReport(string fileName, string delimiter = "|")
+        {
+            GenerateReport(fileName, ImageFiles.SelectMany(s => s.Value), delimiter);
+        }
+
+
+        #region Static Methods
+
+
+        protected static string PathHint(string fileFullPath)
+        {
+            string hint = "Unknown";
+
+            if (fileFullPath.Contains(@"\iPhoto\Masters\") || fileFullPath.Contains(@"\PhotoMasters\") || fileFullPath.Contains(@"\Images\Images\"))
+            {
+                hint = "Master";
+            }
+            else if (fileFullPath.Contains(@"\Originals\") || fileFullPath.Contains(@"\iCloud Photos\") || fileFullPath.Contains(@"\Previews\"))
+            {
+                hint = "Preview";
+            }
+            else if (fileFullPath.Contains(@"\Thumbnails\"))
+            {
+                hint = "Thumbnail";
+            }
+
+            return hint;
+        }
+
+
+        protected static string GetTargetFileName(string directory, string fileName, string pathHint, int attempt)
+        {
+            string targetFileName;
+            string nameSansExtension = Path.GetFileNameWithoutExtension(fileName);
+            string rawExtension = Path.GetExtension(fileName).TrimStart('.');
+
+            if (attempt == 0)
+            {
+                switch (pathHint)
+                {
+                    case "Master":
+                        targetFileName = Path.Combine(directory, fileName);
+                        break;
+                    case "Preview":
+                    case "Thumbnail":
+                        targetFileName = Path.Combine(directory, $"{nameSansExtension}_{pathHint}.{rawExtension}");
+                        break;
+                    default:
+                        targetFileName = Path.Combine(directory, $"{nameSansExtension}_Copy.{rawExtension}");
+                        break;
+                }
+            }
+            else
+            {
+                switch (pathHint)
+                {
+                    case "Master":
+                    case "Preview":
+                    case "Thumbnail":
+                        targetFileName = Path.Combine(directory, $"{nameSansExtension}_{pathHint}_{attempt:D2}.{rawExtension}");
+                        break;
+                    default:
+                        targetFileName = Path.Combine(directory, $"{nameSansExtension}_Copy_{attempt:D2}.{rawExtension}");
+                        break;
+                }
+            }
+
+            return targetFileName;
+        }
+
+
+        public static void GenerateReport(string fileName, IEnumerable<ImageFileInfo> imageFileInfoList, string delimiter = "|")
+        {
+            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                using (TextWriter writer = new StreamWriter(fileStream))
+                {
+                    //writer.WriteLine(string.Join(delimiter, ImageFileInfo.PropertyNames().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
+                    writer.WriteLine(string.Join(delimiter, ImageFileInfo.GetPropertyColumnHeaders().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
+
+                    foreach (ImageFileInfo imageFile in imageFileInfoList.OrderBy(i => i.ImageOriginalDateTime).ThenBy(i => i.ImageModDateTime ?? DateTime.MinValue))
+                    {
+                        //writer.WriteLine(string.Join(delimiter, imageFile.PropertyValues().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
+                        writer.WriteLine(string.Join(delimiter, ImageFileInfo.GetPropertyValues(imageFile).Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
+                    }
+                }
+            }
+        }
+
+
+        private static string CreateDayDirectory(string rootDirectory, DateTime date)
+        {
+            string dayDirectory = Path.Combine(rootDirectory, $"{date.Year}", $"{date.Month:D2}", $"{date.Day:D2}");
+            CreateDirectory(dayDirectory);
+            return dayDirectory;
+        }
+
+
+        private static void CreateDirectory(string directory)
+        {
+            if (!System.IO.Directory.Exists(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            }
+        }
+
+        #endregion
+
+#if never
         public void FindOriginalsDupesAndCollissions(string repository)
         {
             List<ImageFileInfo> singletonFiles = ImageFiles.Where(i => i.Value.Count == 1).SelectMany(i => i.Value).ToList();
@@ -498,29 +645,7 @@ namespace ConsoleApp
 
         }
 
-        public void GenerateReport(string fileName, string delimiter = "|")
-        {
-            GenerateReport(fileName, ImageFiles.SelectMany(s => s.Value), delimiter);
-        }
-
-
-        public void GenerateReport(string fileName, IEnumerable<ImageFileInfo> imageFileInfoList, string delimiter = "|")
-        {
-            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
-            {
-                using (TextWriter writer = new StreamWriter(fileStream))
-                {
-                    //writer.WriteLine(string.Join(delimiter, ImageFileInfo.PropertyNames().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
-                    writer.WriteLine(string.Join(delimiter, ImageFileInfo.GetPropertyColumnHeaders().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
-
-                    foreach (ImageFileInfo imageFile in imageFileInfoList.OrderBy(i => i.ImageOriginalDateTime).ThenBy(i => i.ImageModDateTime ?? DateTime.MinValue))
-                    {
-                        //writer.WriteLine(string.Join(delimiter, imageFile.PropertyValues().Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
-                        writer.WriteLine(string.Join(delimiter, ImageFileInfo.GetPropertyValues(imageFile).Select(p => p.Contains(delimiter) ? $"\"{p}\"" : p)));
-                    }
-                }
-            }
-        }
+#endif
 
     }
 

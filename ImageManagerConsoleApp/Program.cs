@@ -15,7 +15,7 @@ namespace ConsoleApp
             string response = string.Empty;
             ImageFileProcessor imageProcessor = new ImageFileProcessor();
 
-            Console.WriteLine("Load and Analyze Files? => ");
+            Console.WriteLine("Load and Analyze Images from Files? => ");
             response = Console.ReadLine();
 
             if (response?.ToLower().StartsWith("y") ?? false)
@@ -31,15 +31,25 @@ namespace ConsoleApp
                 //int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\Pictures\2017\2017-08-05");
                 int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\Pictures");
             }
-
-            if (imageProcessor.ImageFiles.Count == 0)
+            else
             {
-                Console.WriteLine("Load from database? => ");
+
+                Console.WriteLine("Remove Simple Duplicates in database? => ");
                 response = Console.ReadLine();
 
                 if (response?.ToLower().StartsWith("y") ?? false)
                 {
-                    FileGrouping fileGrouping;
+                    SQL_ImageFileInfo.MarkDuplicates(imageProcessor.DBOConn);
+                }
+
+                Console.WriteLine("Load Already Analyzed Images from database? => ");
+                response = Console.ReadLine();
+
+                FileGrouping fileGrouping = FileGrouping.Undefined;
+                FileStatus fileStatus = FileStatus.Undefined;
+
+                if (response?.ToLower().StartsWith("y") ?? false)
+                {
 
                     Console.WriteLine("Load All(a), Singletons(s), or Multiples(m)? => ");
                     response = Console.ReadLine();
@@ -58,7 +68,6 @@ namespace ConsoleApp
                             break;
                     }
 
-                    FileStatus fileStatus;
 
                     Console.WriteLine("Load All(a), Moved(y), or Not Moved(n)? => ");
                     response = Console.ReadLine();
@@ -79,44 +88,87 @@ namespace ConsoleApp
 
                     int fileCount = imageProcessor.LoadFromDatabase(fileStatus, fileGrouping);
                 }
-            }
 
 
-            //int fileCount = imageProcessor.AnalyzeFiles("^*.(nef|NEF)$", @"\\MEGAMINI\edward_figarsky\Documents\WindowsData\DCIM\100NCD80");
+                //int fileCount = imageProcessor.AnalyzeFiles("^*.(nef|NEF)$", @"\\MEGAMINI\edward_figarsky\Documents\WindowsData\DCIM\100NCD80");
 
-            //int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\AdobeStockPhotos");
+                //int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\AdobeStockPhotos");
 
-            if ((imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count == 1).Count() > 0))
-            {
-                Console.WriteLine("Output Singleton Files? => ");
+#if never
+                if ((fileGrouping != FileGrouping.Undefined) && (imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count == 1).Count() > 0))
+                {
+                    Console.WriteLine("Output Singleton Files? => ");
+                    response = Console.ReadLine();
+
+                    if (response?.ToLower().StartsWith("y") ?? false)
+                    {
+
+                        imageProcessor.ProcessSingletonImages(@"E:\PhotoRepository");
+                        imageProcessor.GenerateReport($@"E:PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", ",");
+                    }
+                }
+
+
+                if ((fileGrouping != FileGrouping.Undefined) && (imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count > 1).Count() > 0))
+                {
+                    Console.WriteLine("Output Multiple Files? => ");
+                    response = Console.ReadLine();
+
+                    if (response?.ToLower().StartsWith("y") ?? false)
+                    {
+
+                        imageProcessor.ProcessMultipleImages(@"E:\PhotoRepository");
+                        imageProcessor.GenerateReport($@"E:PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", ",");
+                    }
+                }
+#endif
+                Console.WriteLine("Output Files? => ");
                 response = Console.ReadLine();
 
                 if (response?.ToLower().StartsWith("y") ?? false)
                 {
+                    while ((imageProcessor.ImageFiles.Count > 0))
+                    {
+                        if ((imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count == 1).Count() > 0))
+                        {
+                            Console.WriteLine("Outputting Singleton Files ...");
 
-                    imageProcessor.ProcessSingletonImages(@"E:\PhotoRepository");
-                    imageProcessor.GenerateReport($@"E:PictureReport_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", ",");
+                            imageProcessor.ProcessSingletonImages(@"E:\PhotoRepository");
+                            imageProcessor.GenerateReport($@"E:\PhotoRepository\PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv", ",");
+                        }
+
+                        if ((imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count > 1).Count() > 0))
+                        {
+                            Console.WriteLine("Outputting Multiple Files ...");
+                            imageProcessor.ProcessMultipleImages(@"E:\PhotoRepository");
+                            imageProcessor.GenerateReport($@"E:\PhotoRepository\PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv", ",");
+                        }
+
+                        int fileCount = imageProcessor.LoadFromDatabase(fileStatus, fileGrouping);
+                    }
                 }
+
+
+                //IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(@"\\192.168.1.148\Macintosh HD\Users\edward_figarsky 1\Pictures\Dupe\IMG_0605.JPG");
+                //var subIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+                //var dateTime = subIfdDirectory?.GetDescription(ExifDirectoryBase.TagDateTime);
+
+                //foreach (var directory in directories)
+                //    foreach (var tag in directory.Tags)
+                //        Console.WriteLine($"{ directory.Name} - {tag.Name} = {tag.Description}");
+
+                //var poop = imageProcessor.ImageFiles.Where(i => i.Value.Count > 1).SelectMany(s => s.Value).Distinct(new ImageFileInfo_Comparer());
+
+                //foreach(var imageList in imageProcessor.ImageFiles.Where(i => i.Value.Count > 1))
+                //{
+                //    var distinctImages = imageList.Value.Distinct(new ImageFileInfo_Comparer());
+
+                //    foreach (var extraItem in imageList.Value.Where(v => !distinctImages.ToList().Exists(d => d.FileFullPath == v.FileFullPath)).ToList())
+                //    {
+                //        imageList.Value.Remove(extraItem);
+                //    }
+                //}
             }
-            //IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(@"\\192.168.1.148\Macintosh HD\Users\edward_figarsky 1\Pictures\Dupe\IMG_0605.JPG");
-            //var subIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
-            //var dateTime = subIfdDirectory?.GetDescription(ExifDirectoryBase.TagDateTime);
-
-            //foreach (var directory in directories)
-            //    foreach (var tag in directory.Tags)
-            //        Console.WriteLine($"{ directory.Name} - {tag.Name} = {tag.Description}");
-
-            //var poop = imageProcessor.ImageFiles.Where(i => i.Value.Count > 1).SelectMany(s => s.Value).Distinct(new ImageFileInfo_Comparer());
-
-            //foreach(var imageList in imageProcessor.ImageFiles.Where(i => i.Value.Count > 1))
-            //{
-            //    var distinctImages = imageList.Value.Distinct(new ImageFileInfo_Comparer());
-
-            //    foreach (var extraItem in imageList.Value.Where(v => !distinctImages.ToList().Exists(d => d.FileFullPath == v.FileFullPath)).ToList())
-            //    {
-            //        imageList.Value.Remove(extraItem);
-            //    }
-            //}
 
             Console.WriteLine("Press Enter to Finish => ");
             response = Console.ReadLine();
