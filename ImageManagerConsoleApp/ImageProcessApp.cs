@@ -2,19 +2,40 @@
 using SQLData;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using WindowsFirewallHelper;
 
 namespace ConsoleApp
 {
-    public class Program
+    public class ImageProcessApp
     {
+        public string RepositoryRoot { get; set; }
+        public string ReportingRoot { get; set; }
+        public string ImageSourceRoot { get; set; }
+
         static void Main(string[] args)
+        {
+            ImageProcessApp imageProcessApp = new ImageProcessApp();
+            imageProcessApp.RepositoryRoot = @"E:\PhotoRepository_2";
+            imageProcessApp.ReportingRoot = @"E:\PhotoRepository_2\ReportingRoot";
+            imageProcessApp.ImageSourceRoot = @"E:\Pictures";
+
+            imageProcessApp.ProcessImages();
+        }
+
+        public void ProcessImages()
         {
             string response = string.Empty;
             ImageFileProcessor imageProcessor = new ImageFileProcessor();
+            int recordCount = SQL_ImageFileInfo.GetRecordCount(imageProcessor.DBOConn);
 
+
+            Directory.CreateDirectory(RepositoryRoot);
+            Directory.CreateDirectory(ReportingRoot);
+
+            Console.WriteLine($"There are currently {recordCount} ImageFileInfo records in the database.");
             Console.WriteLine("Load and Analyze Images from Files? => ");
             response = Console.ReadLine();
 
@@ -29,7 +50,7 @@ namespace ConsoleApp
                 }
 
                 //int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\Pictures\2017\2017-08-05");
-                int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", @"E:\Pictures");
+                int fileCount = imageProcessor.AnalyzeFiles("^*.(BMP|NEF|JPG|JPEG|PNG|PSD|TIF|TIFF)$", ImageSourceRoot);
             }
             else
             {
@@ -103,8 +124,8 @@ namespace ConsoleApp
                     if (response?.ToLower().StartsWith("y") ?? false)
                     {
 
-                        imageProcessor.ProcessSingletonImages(@"E:\PhotoRepository");
-                        imageProcessor.GenerateReport($@"E:PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", ",");
+                        imageProcessor.ProcessSingletonImages(RepositoryRoot);
+                        imageProcessor.GenerateReport(Path.Combine(ReportingRoot, $@"\PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv"), ",");
                     }
                 }
 
@@ -117,8 +138,8 @@ namespace ConsoleApp
                     if (response?.ToLower().StartsWith("y") ?? false)
                     {
 
-                        imageProcessor.ProcessMultipleImages(@"E:\PhotoRepository");
-                        imageProcessor.GenerateReport($@"E:PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv", ",");
+                        imageProcessor.ProcessMultipleImages(RepositoryRoot);
+                        imageProcessor.GenerateReport(Path.Combine(ReportingRoot, $@"\PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmss")}.csv"), ",");
                     }
                 }
 #endif
@@ -133,15 +154,15 @@ namespace ConsoleApp
                         {
                             Console.WriteLine("Outputting Singleton Files ...");
 
-                            imageProcessor.ProcessSingletonImages(@"E:\PhotoRepository");
-                            imageProcessor.GenerateReport($@"E:\PhotoRepository\PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv", ",");
+                            imageProcessor.ProcessSingletonImages(RepositoryRoot);
+                            imageProcessor.GenerateReport(Path.Combine(ReportingRoot, $@"\PictureReport_Single_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv"), ",");
                         }
 
                         if ((imageProcessor.ImageFiles.Count > 0) && (imageProcessor.ImageFiles.Where(i => i.Value.Count > 1).Count() > 0))
                         {
                             Console.WriteLine("Outputting Multiple Files ...");
-                            imageProcessor.ProcessMultipleImages(@"E:\PhotoRepository");
-                            imageProcessor.GenerateReport($@"E:\PhotoRepository\PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv", ",");
+                            imageProcessor.ProcessMultipleImages(RepositoryRoot);
+                            imageProcessor.GenerateReport(Path.Combine(ReportingRoot, $@"\PictureReport_Multiple_{DateTime.Now.ToString("yyyyMMdd_hhmmsss")}.csv"), ",");
                         }
 
                         int fileCount = imageProcessor.LoadFromDatabase(fileStatus, fileGrouping);

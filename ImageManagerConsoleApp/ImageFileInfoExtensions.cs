@@ -1,4 +1,5 @@
 ﻿using SQLData;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -6,6 +7,7 @@ namespace ConsoleApp
 {
     public static class ImageFileInfoExtensions
     {
+        private static object _DictionaryLock = new object();
 
         #region PrivateMethods
 
@@ -126,21 +128,24 @@ namespace ConsoleApp
             };
         }
 
-        public static void AddImageFileInfoToDictionary(this Dictionary<string, List<ImageFileInfo>> imageFiles, ImageFileInfo imageFileInfo, string connectionString = null)
+        public static void AddImageFileInfoToDictionary(this ConcurrentDictionary<string, List<ImageFileInfo>> imageFiles, ImageFileInfo imageFileInfo, string connectionString = null)
         {
             string imageRootName = GetRootImageName(imageFileInfo.FileNameWithoutExtension);
 
-            if (imageFiles.ContainsKey(imageRootName))
+            lock (_DictionaryLock)
             {
-                if (!imageFiles[imageRootName].Exists(i => i.FileFullPath == imageFileInfo.FileFullPath))
+                if (imageFiles.ContainsKey(imageRootName))
                 {
-                    imageFiles[imageRootName].Add(imageFileInfo);
+                    if (!imageFiles[imageRootName].Exists(i => i.FileFullPath == imageFileInfo.FileFullPath))
+                    {
+                        imageFiles[imageRootName].Add(imageFileInfo);
+                    }
                 }
-            }
-            else
-            {
-                List<ImageFileInfo> imageFileInfos = new List<ImageFileInfo>() { imageFileInfo };
-                imageFiles.Add(imageRootName, imageFileInfos);
+                else
+                {
+                    List<ImageFileInfo> imageFileInfos = new List<ImageFileInfo>() { imageFileInfo };
+                    imageFiles.TryAdd(imageRootName, imageFileInfos);
+                }
             }
         }
 

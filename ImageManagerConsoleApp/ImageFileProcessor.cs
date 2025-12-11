@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.FileSystem;
@@ -39,7 +41,7 @@ namespace ConsoleApp
             }
         }
 
-        public Dictionary<string, List<ImageFileInfo>> ImageFiles { get; set; } = new Dictionary<string, List<ImageFileInfo>>();
+        public ConcurrentDictionary<string, List<ImageFileInfo>> ImageFiles { get; set; } = new ConcurrentDictionary<string, List<ImageFileInfo>>();
 
         protected Dictionary<string, Regex> _SearchPatterns { get; set; } = new Dictionary<string, Regex>();
 
@@ -86,16 +88,53 @@ namespace ConsoleApp
             }
         }
 
+
+        public void GetDirectoryList(List<string> directories, Regex patternRegex, string rootFolderPath)
+        {
+            if (directories == null)
+            {
+                directories = new List<string>();
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(rootFolderPath);
+
+            if (directoryInfo.GetFiles().Any(f => patternRegex.IsMatch(f.Name)))
+            {
+                directories.Add(directoryInfo.FullName);
+            }
+
+            foreach (var subDirectory in directoryInfo.GetDirectories().Where(d => d.EnumerateDirectories().Count() > 0 || d.EnumerateFiles().Count() > 0))
+            {
+                GetDirectoryList(directories, patternRegex, subDirectory.FullName);
+            }
+        }
+
         public int AnalyzeFiles(string fileSearchPattern, string rootFolderPath)
         {
             try
             {
+                List<string> directories = new List<string>();
+                Regex patternRegex = GetRegex(fileSearchPattern);
+
+                DateTime start = DateTime.Now;
+                GetDirectoryList(directories, patternRegex, rootFolderPath);
+                TimeSpan elapsedTime = DateTime.Now - start;
+
+                Console.WriteLine($"Time to execute GetFileList: {elapsedTime.TotalSeconds}");
+
+                Parallel.ForEach(directories, new ParallelOptions { MaxDegreeOfParallelism = 4 }, thisDirectory =>
+                {
+                    AnalyzeDirectory(thisDirectory, patternRegex);
+                });
+
+                /*
                 IEnumerable<string> imageFiles = GetFileList(fileSearchPattern, rootFolderPath);
 
                 foreach (string filename in imageFiles)
                 {
                     AnalyzeFile(filename);
                 }
+                */
             }
             catch (Exception ex)
             {
@@ -103,6 +142,15 @@ namespace ConsoleApp
             }
 
             return ImageFiles?.Sum(k => k.Value?.Count ?? 0) ?? 0;
+        }
+
+
+        public void AnalyzeDirectory(string directoryPath, Regex patternRegex)
+        {
+            foreach (string filename in System.IO.Directory.GetFiles(directoryPath).Where(f => patternRegex.IsMatch(f)))
+            {
+                AnalyzeFile(filename);
+            }
         }
 
 
@@ -362,7 +410,7 @@ namespace ConsoleApp
 
             foreach (string fileName in singletonFiles.Select(u => u.FileNameWithoutExtension))
             {
-                ImageFiles.Remove(fileName);
+                ImageFiles.TryRemove(fileName, out List<ImageFileInfo> removedList);
             }
         }
 
@@ -426,7 +474,7 @@ namespace ConsoleApp
 
             foreach (string fileName in movedFiles.Select(u => u.FileNameWithoutExtension))
             {
-                ImageFiles.Remove(fileName);
+                ImageFiles.TryRemove(fileName, out List<ImageFileInfo> removedList);
             }
         }
 

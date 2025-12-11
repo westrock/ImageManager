@@ -45,8 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQL_ImageFileInfo.cs" />
-    <Compile Include="SQL_ImageFileInfo.Extra.cs" />
+    <Compile Include="SQL_ImageFileInfo_IMFI.cs" />
+    <Compile Include="SQL_ImageFileInfo_IMFI.Extra.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DBObjects\DataObjects.csproj">

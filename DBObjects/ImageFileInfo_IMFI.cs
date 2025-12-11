@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace DataObjects
 {
 
-    public partial class ImageFileInfo : DBODataObjectBase
+    public partial class ImageFileInfo_IMFI : DBODataObjectBase
     {
 
 		#region Constructors
@@ -14,7 +14,7 @@ namespace DataObjects
 		/// <summary>
 		/// Default Constructor
 		/// </summary>
-		public ImageFileInfo()
+		public ImageFileInfo_IMFI()
 		{
 			UpdatedBy = CurrentWindowsUser.Name;
 		}
@@ -41,7 +41,7 @@ namespace DataObjects
 
     #region ImageFileInfoList Class
 
-    public partial class ImageFileInfoList :  List<ImageFileInfo>
+    public partial class ImageFileInfoList :  List<ImageFileInfo_IMFI>
 	{
 
 		#region Constructors
@@ -74,7 +74,7 @@ namespace DataObjects
             {
                 foreach (DataRow objRow in objTable.Rows)
                 {
-                    Add((ImageFileInfo)converter(objRow));
+                    Add((ImageFileInfo_IMFI)converter(objRow));
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace DataObjects
             {
                 foreach (DataRow objRow in objRows)
                 {
-                    Add((ImageFileInfo)converter(objRow));
+                    Add((ImageFileInfo_IMFI)converter(objRow));
                 }
             }
         }
@@ -105,9 +105,9 @@ namespace DataObjects
         /// </summary>
         /// <param name="indexValue">The index</param>
         /// <returns>A IPAddress object</returns>
-        public new ImageFileInfo this[int indexValue]
+        public new ImageFileInfo_IMFI this[int indexValue]
         {
-            get { return (ImageFileInfo)base[indexValue]; }
+            get { return (ImageFileInfo_IMFI)base[indexValue]; }
         }
 
         #endregion

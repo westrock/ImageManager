@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 
 namespace SQLData
 {
-    public partial class SQL_ImageFileInfo : DBOFactoryObjectBase, IDBOFactoryObject
+    public partial class SQL_ImageFileInfo_IMFI : DBOFactoryObjectBase, IDBOFactoryObject
     {
         #region Private Fields
 
@@ -14,8 +14,8 @@ namespace SQLData
 
         protected override object IdValue
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageId;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageId = (int)value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageId;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageId = (int)value;
         }
 
         #endregion
@@ -25,12 +25,12 @@ namespace SQLData
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public SQL_ImageFileInfo()
+        public SQL_ImageFileInfo_IMFI()
         {
-            this.DataObject = new DataObjects.ImageFileInfo();
+            this.DataObject = new DataObjects.ImageFileInfo_IMFI();
             base.UpdatedBy = CurrentWindowsUser.Name;
 
-            Table = "ImageFileInfo";
+            Table = "ImageFileInfo_IMFI";
             Identity = "ImageId";
             Columns = new List<string>
             {
@@ -66,7 +66,7 @@ namespace SQLData
         /// Complete Object-based Constructor
         /// </summary>
         /// <param name="ImageFileInfoObject">A DataObjects.SQL_ImageFileInfo object</param>
-        public SQL_ImageFileInfo(DataObjects.ImageFileInfo ImageFileInfoObject)
+        public SQL_ImageFileInfo_IMFI(DataObjects.ImageFileInfo_IMFI ImageFileInfoObject)
             : this(ImageFileInfoObject, null)
         {
         }
@@ -78,12 +78,12 @@ namespace SQLData
         /// </summary>
         /// <param name="clientsObject">A DataObjects.SQL_ImageFileInfo object</param>
         /// <param name="connection">A Connection String</param>
-        public SQL_ImageFileInfo(DataObjects.ImageFileInfo ImageFileInfoObject, string connection)
+        public SQL_ImageFileInfo_IMFI(DataObjects.ImageFileInfo_IMFI ImageFileInfoObject, string connection)
             :base(connection)
         {
             this.DataObject = ImageFileInfoObject;
 
-            Table = "ImageFileInfo";
+            Table = "ImageFileInfo_IMFI";
             Identity = "ImageId";
             Columns = new List<string>
             {
@@ -119,13 +119,13 @@ namespace SQLData
 
 
         /// <summary>
-        /// This static method is the preferred technique for obtaining a ImageFileInfo record via its IdValue.
+        /// This static method is the preferred technique for obtaining a ImageFileInfo_IMFI record via its IdValue.
         /// </summary>
-        /// <param name="id">The ImageFileInfo's IdValue value</param>
-        /// <returns>A ImageFileInfo record contained in a ImageFileInfo object, or null</returns>
-        public static SQL_ImageFileInfo GetByID(int id, string connectionString)
+        /// <param name="id">The ImageFileInfo_IMFI's IdValue value</param>
+        /// <returns>A ImageFileInfo_IMFI record contained in a ImageFileInfo_IMFI object, or null</returns>
+        public static SQL_ImageFileInfo_IMFI GetByID(int id, string connectionString)
         {
-            SQL_ImageFileInfo objImageFileInfo = new SQL_ImageFileInfo(new DataObjects.ImageFileInfo() { ImageId = id }, connectionString);
+            SQL_ImageFileInfo_IMFI objImageFileInfo = new SQL_ImageFileInfo_IMFI(new DataObjects.ImageFileInfo_IMFI() { ImageId = id }, connectionString);
 
             return (0 == objImageFileInfo.Get()) ? objImageFileInfo : null;
         }
@@ -167,7 +167,7 @@ namespace SQLData
         /// <returns>A DataSet containing a collection of SQL_ImageFileInfo objects, or null</returns>
         public static DataSet GetAllDS(bool refresh, string connectionString)
         {
-            SQL_ImageFileInfo ImageFileInfoObject = new SQL_ImageFileInfo(new DataObjects.ImageFileInfo(), connectionString);
+            SQL_ImageFileInfo_IMFI ImageFileInfoObject = new SQL_ImageFileInfo_IMFI(new DataObjects.ImageFileInfo_IMFI(), connectionString);
 
             if (0 == ImageFileInfoObject.GetAll(refresh))
                 return m_objAllImageFileInfoDS;
@@ -364,7 +364,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method gets the ImageFileInfo based on the value of the instance's key.
+        /// This method gets the ImageFileInfo_IMFI based on the value of the instance's key.
         /// </summary>
         /// <returns></returns>
         public int Get()
@@ -374,7 +374,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method Saves a ImageFileInfo record
+        /// This method Saves a ImageFileInfo_IMFI record
         /// </summary>
         /// <returns>The return value from the INSERT.</returns>
         public int Save()
@@ -384,7 +384,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method updates Saves a ImageFileInfo record using a transaction
+        /// This method updates Saves a ImageFileInfo_IMFI record using a transaction
         /// </summary>
         /// <returns>The return value from the INSERT.</returns>
         public int Save(DBOFactoryTransaction objTransaction)
@@ -394,7 +394,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method updates a ImageFileInfo record
+        /// This method updates a ImageFileInfo_IMFI record
         /// </summary>
         /// <returns>The return value from the UPDATE.</returns>
         public int Update()
@@ -404,7 +404,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method updates a ImageFileInfo record
+        /// This method updates a ImageFileInfo_IMFI record
         /// </summary>
         /// <returns>The return value from the UPDATE.</returns>
         public int Update(DBOFactoryTransaction objTransaction)
@@ -414,7 +414,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method deletes a ImageFileInfo record
+        /// This method deletes a ImageFileInfo_IMFI record
         /// </summary>
         /// <returns>The return value from the DELETE.</returns>
         public int Delete()
@@ -424,7 +424,7 @@ namespace SQLData
 
 
         /// <summary>
-        /// This method deletes a ImageFileInfo record
+        /// This method deletes a ImageFileInfo_IMFI record
         /// </summary>
         /// <returns>The return value from the DELETE.</returns>
         public int Delete(DBOFactoryTransaction objTransaction)
@@ -439,7 +439,7 @@ namespace SQLData
         #region Private Methods
 
         /// <summary>
-        /// Gets all of the currently defined ImageFileInfo records from either the local
+        /// Gets all of the currently defined ImageFileInfo_IMFI records from either the local
         /// copy in the private member m_objAllImageFileInfoDS, or a fresh copy.
         /// </summary>
         /// <remarks>Do we really need a lock here?</remarks>
@@ -474,161 +474,161 @@ namespace SQLData
         /// <summary>
         /// Gets the SQL_ImageFileInfo APSDataObject
         /// </summary>
-        public DataObjects.ImageFileInfo ImageFileInfoObject => (DataObjects.ImageFileInfo)DataObject;
+        public DataObjects.ImageFileInfo_IMFI ImageFileInfoObject => (DataObjects.ImageFileInfo_IMFI)DataObject;
 
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public int ImageId
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageId;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageId = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageId;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageId = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public string FileFullPath
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileFullPath;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileFullPath = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileFullPath;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileFullPath = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public Int64 ImageSize
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageSize;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageSize = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageSize;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageSize = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public int ImageWidth
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageWidth;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageWidth = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageWidth;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageWidth = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public int ImageHeight
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageHeight;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageHeight = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageHeight;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageHeight = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public DateTime? ImageOriginalDateTime
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageOriginalDateTime;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageOriginalDateTime = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageOriginalDateTime;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageOriginalDateTime = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public DateTime? ImageModDateTime
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).ImageModDateTime;
-            set => ((DataObjects.ImageFileInfo)DataObject).ImageModDateTime = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageModDateTime;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).ImageModDateTime = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public string FileName
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileName;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileName = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileName;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileName = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public string FileNameWithoutExtension
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileNameWithoutExtension;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileNameWithoutExtension = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileNameWithoutExtension;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileNameWithoutExtension = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public string FileExtension
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileExtension;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileExtension = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileExtension;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileExtension = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public Int64 FileSize
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileSize;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileSize = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileSize;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileSize = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public DateTime? FileCreateDate
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileCreateDate;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileCreateDate = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileCreateDate;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileCreateDate = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public DateTime? FileLastWriteTime
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).FileLastWriteTime;
-            set => ((DataObjects.ImageFileInfo)DataObject).FileLastWriteTime = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileLastWriteTime;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).FileLastWriteTime = value;
         }
 
 
 
         /// <summary>
-        /// Gets and sets the DataObject's ImageFileInfo property
+        /// Gets and sets the DataObject's ImageFileInfo_IMFI property
         /// </summary>
         public DateTime LikelyDateTime
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).LikelyDateTime;
-            set => ((DataObjects.ImageFileInfo)DataObject).LikelyDateTime = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).LikelyDateTime;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).LikelyDateTime = value;
         }
 
 
@@ -637,8 +637,8 @@ namespace SQLData
         /// </summary>
         public bool IsMoved
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).IsMoved;
-            set => ((DataObjects.ImageFileInfo)DataObject).IsMoved = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).IsMoved;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).IsMoved = value;
         } 
 
 
@@ -647,8 +647,8 @@ namespace SQLData
         /// </summary>
         public string NewFullPath
         {
-            get => ((DataObjects.ImageFileInfo)DataObject).NewFullPath;
-            set => ((DataObjects.ImageFileInfo)DataObject).NewFullPath = value;
+            get => ((DataObjects.ImageFileInfo_IMFI)DataObject).NewFullPath;
+            set => ((DataObjects.ImageFileInfo_IMFI)DataObject).NewFullPath = value;
         }
 
 
@@ -686,7 +686,7 @@ namespace SQLData
 
         protected static DBODataObjectBase RowConverter(DataRow objRow)
         {
-            return new DataObjects.ImageFileInfo()
+            return new DataObjects.ImageFileInfo_IMFI()
             {
                 ImageId = (int)objRow["ImageId"],
                 FileFullPath = (string)objRow["FileFullPath"],
